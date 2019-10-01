@@ -1,4 +1,6 @@
-<?php namespace Pine\Console;
+<?php
+
+namespace Pine\Console;
 
 use GuzzleHttp\Client;
 use Pine\Config\Config;
@@ -14,14 +16,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Class NewCommand
- *
- * @package Azi
+ * Class NewCommand.
  */
 class NewCommand extends Command
 {
     /**
-     * @var $baseUrl string download the package from
+     * @var string download the package from
      */
     protected $baseUrl = 'https://wordpress.org';
 
@@ -48,7 +48,7 @@ class NewCommand extends Command
      * @param Config $config
      * @param null $name
      */
-    public function __construct( Config $config, $name = null )
+    public function __construct(Config $config, $name = null)
     {
         $this->cacheDirectory = $this->getCacheDirectory();
         $this->createCacheDirectory();
@@ -82,10 +82,10 @@ class NewCommand extends Command
      * @param OutputInterface $output
      * @return int|null|void
      */
-    public function execute( InputInterface $input, OutputInterface $output )
+    public function execute(InputInterface $input, OutputInterface $output)
     {
         if (!$this->config->isConfigured()) {
-            $output->writeln("<info>Your pine installation is not configured, please complete the interactive setup to configure it.</info>");
+            $output->writeln('<info>Your pine installation is not configured, please complete the interactive setup to configure it.</info>');
             $this->call('init', $output);
             $this->config->load();
         }
@@ -97,7 +97,7 @@ class NewCommand extends Command
         $this->setApp($input->getArgument('name'))->setVersion($input->getArgument('version'));
 
         $this->verifyApplicationDoesNotExists(
-            $directory = ( $input->getArgument('name') ) ? getcwd() . '/' . $input->getArgument('name') : getcwd()
+            $directory = ($input->getArgument('name')) ? getcwd() . '/' . $input->getArgument('name') : getcwd()
         );
         $this->setApp($input->getArgument('name'))->setVersion($input->getArgument('version'));
 
@@ -109,35 +109,35 @@ class NewCommand extends Command
         $this->extract($zipFile);
 
         $output->writeln('<info>Generating WordPress theme & installing timber</info>');
-        ( new Theme($this->getApp(), $input, $output, $this->config) )->generate();
+        (new Theme($this->getApp(), $input, $output, $this->config))->generate();
 
         // install WordPress
         if ($input->hasOption('skip-install')) {
-            ( new WPInstaller($this, $this->config, $input, $output, new WPCli($input, $output)) )->install(
+            (new WPInstaller($this, $this->config, $input, $output, new WPCli($input, $output)))->install(
                 realpath($this->getApp())
             );
         }
 
         $output->writeln('<comment>All done! Build something amazing.</comment>');
-
     }
 
     /**
      * @param $directory
      * @return bool
      */
-    protected function verifyApplicationDoesNotExists( $directory )
+    protected function verifyApplicationDoesNotExists($directory)
     {
-        $isEmpty = ( count(glob("$directory/*")) === 0 ) ? true : false;
+        $isEmpty = (count(glob("$directory/*")) === 0) ? true : false;
 
-        if (( is_dir($directory) || is_file($directory) ) && $directory != getcwd() && !$isEmpty) {
+        if ((is_dir($directory) || is_file($directory)) && $directory != getcwd() && !$isEmpty) {
             throw new RuntimeException('Application already exists!');
         }
+
         return true;
     }
 
     /**
-     * Create application directory
+     * Create application directory.
      *
      * @throws RuntimeException
      */
@@ -146,7 +146,7 @@ class NewCommand extends Command
         $directory = getcwd() . '/' . $this->getApp();
 
         if (!is_writable(dirname($directory))) {
-            throw new RuntimeException(sprintf("%s is not writable by current user", $directory));
+            throw new RuntimeException(sprintf('%s is not writable by current user', $directory));
         }
 
         if (is_dir($directory) && !file_exists($directory)) {
@@ -166,37 +166,36 @@ class NewCommand extends Command
      * @param mixed $app
      * @return NewCommand
      */
-    public function setApp( $app )
+    public function setApp($app)
     {
         $this->app = $app;
+
         return $this;
     }
 
     /**
-     * Download WordPress Zip package
+     * Download WordPress Zip package.
      *
      * @param OutputInterface $output
      * @return string
      */
-    public function download( $output )
+    public function download($output)
     {
         $zipFilePath = $this->getZipFilePath();
 
         if (file_exists($zipFilePath) && $this->verifyZipIntegrity()) {
+            $output->writeln('Using WordPress from cache');
+
             return $zipFilePath;
         }
 
-        $file = ( new Client([
+        $file = (new Client([
             'verify' => false,
-        ]) );
+        ]));
 
         $zipFileResource  = fopen($zipFilePath, 'w');
         $downloadProgress = new ProgressBar($output);
-//        $downloadProgress->setFormatDefinition('custom', '<info>Downloading WordPress: %downloaded%%</info>');
-        // 0.2% of 2.16GiB at 423.73KiB/s ETA 01:28:56^C
-//        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s%');
         $downloadProgress->setFormat('<comment>Downloading WordPress : %downloaded%M of %total_size%M %percent_now%%</comment>');
-//        $downloadProgress->setFormat('<question>%bar%</question>');
         $downloadProgress->start();
 
         $file->request('GET', $this->getUrl(), [
@@ -206,11 +205,10 @@ class NewCommand extends Command
                 $downloadedBytes,
                 $uploadTotal,
                 $uploadedBytes
-            ) use ( $downloadProgress ) {
-
+            ) use ($downloadProgress) {
                 $progressValue = 0;
                 if ($downloadedBytes > 0) {
-                    $progressValue = ( $downloadedBytes / $downloadTotal ) * 100;
+                    $progressValue = ($downloadedBytes / $downloadTotal) * 100;
                 }
 
 //                if ($downloadTotal) {
@@ -234,7 +232,8 @@ class NewCommand extends Command
             },
         ]);
 
-        $output->writeln("");
+        $output->writeln('');
+
         return $zipFilePath;
     }
 
@@ -247,7 +246,7 @@ class NewCommand extends Command
             return $this->cacheDirectory . "wordpress-$version.zip";
         }
 
-        return $this->cacheDirectory . "wordpress.zip";
+        return $this->cacheDirectory . 'wordpress.zip';
     }
 
     /**
@@ -262,7 +261,7 @@ class NewCommand extends Command
      * @param mixed $version
      * @return NewCommand
      */
-    public function setVersion( $version )
+    public function setVersion($version)
     {
         $this->version = $version;
 
@@ -273,17 +272,18 @@ class NewCommand extends Command
      * @param string $algorithm md5|sha1
      * @return bool
      */
-    protected function verifyZipIntegrity( $algorithm = 'md5' )
+    protected function verifyZipIntegrity($algorithm = 'md5')
     {
         $request        = new Client([
-            'verify' => false
+            'verify' => false,
         ]);
         $response       = $request->get($this->getUrl($algorithm));
         $remoteChecksum = $response->getBody();
         $localChecksum  = md5_file($this->getZipFilePath());
-        if ($algorithm == 'md5' && ( $remoteChecksum != $localChecksum )) {
+        if ($algorithm == 'md5' && ($remoteChecksum != $localChecksum)) {
             unlink($this->getZipFilePath());
-            echo( "Cannot verify integrity of {$this->getZipFilePath()}.\n We have deleted the file.\n Downloading it again. \n" );
+            echo "Cannot verify integrity of {$this->getZipFilePath()}.\n We have deleted the file.\n Downloading it again. \n";
+
             return false;
         }
 
@@ -291,12 +291,12 @@ class NewCommand extends Command
     }
 
     /**
-     * Get WordPress ZIP file URL
+     * Get WordPress ZIP file URL.
      *
      * @param null $checksum
      * @return mixed null|md5|sha1
      */
-    protected function getUrl( $checksum = null )
+    protected function getUrl($checksum = null)
     {
         $url = $this->baseUrl . '/latest.zip';
         if ($version = $this->getVersion()) {
@@ -306,31 +306,32 @@ class NewCommand extends Command
         if ($checksum) {
             $url .= ".$checksum";
         }
+
         return $url;
     }
 
     /**
      * @param $file
      */
-    public function extract( $file )
+    public function extract($file)
     {
         $projectPath = getcwd() . '/' . $this->getApp();
         $zip         = new \ZipArchive();
         $zip->open($file);
         $zip->extractTo($projectPath);
 
-        $this->move($projectPath . "/wordpress/", $projectPath);
-        $this->delete($projectPath . "/wordpress/");
+        $this->move($projectPath . '/wordpress/', $projectPath);
+        $this->delete($projectPath . '/wordpress/');
     }
 
     /**
-     * Move files from one directory to another
+     * Move files from one directory to another.
      *
      * @param $source
      * @param $destination
      * @link http://stackoverflow.com/a/27290570/2641971
      */
-    public function move( $source, $destination )
+    public function move($source, $destination)
     {
         $this->fileSystem = new Filesystem();
 
@@ -341,24 +342,22 @@ class NewCommand extends Command
         $directoryIterator = new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS);
         $iterator          = new \RecursiveIteratorIterator($directoryIterator, \RecursiveIteratorIterator::SELF_FIRST);
         foreach ($iterator as $item) {
-
             if ($item->isDir()) {
                 $this->fileSystem->mkdir($destination . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
             } else {
                 $this->fileSystem->rename($item, $destination . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
             }
         }
-
     }
 
     /**
-     * Delete a directory recursively
+     * Delete a directory recursively.
      *
      * @param $directory
      * @return bool
      * @link http://stackoverflow.com/a/1653776/2641971
      */
-    public function delete( $directory )
+    public function delete($directory)
     {
         if (!file_exists($directory)) {
             return true;
@@ -376,7 +375,6 @@ class NewCommand extends Command
             if (!$this->delete($directory . DIRECTORY_SEPARATOR . $item)) {
                 return false;
             }
-
         }
 
         return rmdir($directory);
@@ -393,9 +391,9 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED, 'Your applications\'s name')
             ->addArgument('version', InputArgument::OPTIONAL, 'The version of WordPress to download [optional]')
             ->addOption('url', null, InputOption::VALUE_OPTIONAL, 'Site URL [optional]')
-            ->addOption('prefix', null, InputOption::VALUE_OPTIONAL, 'Database table prefix [optional]')
-            ->addOption('db', null, InputOption::VALUE_OPTIONAL, 'Database name [optional]')
-            ->addOption('title', null, InputOption::VALUE_OPTIONAL, 'Application title [optional]')
+            ->addOption('prefix', null, InputOption::VALUE_OPTIONAL, 'Database table prefix [optional]', null)
+            ->addOption('db', null, InputOption::VALUE_OPTIONAL, 'Database name [optional]', null)
+            ->addOption('title', null, InputOption::VALUE_OPTIONAL, 'Application title [optional]', null)
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Pass this option if you want to install npm packages')
             ->addOption('skip-install', 's', InputOption::VALUE_NONE, 'Skip wordpress installation');
     }

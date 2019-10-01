@@ -11,9 +11,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 /**
- * Class Theme
- *
- * @package Azi\Generators
+ * Class Theme.
  */
 class Theme
 {
@@ -30,12 +28,12 @@ class Theme
     protected $path;
 
     /**
-     * @var InputInterface $input
+     * @var InputInterface
      */
     protected $input;
 
     /**
-     * @var OutputInterface $output
+     * @var OutputInterface
      */
     protected $output;
     /**
@@ -51,7 +49,7 @@ class Theme
      * @param OutputInterface $output
      * @param Config $config
      */
-    public function __construct( $name, InputInterface $input, OutputInterface $output, Config $config )
+    public function __construct($name, InputInterface $input, OutputInterface $output, Config $config)
     {
         $this->name       = $name;
         $this->path       = getcwd() . '/' . $name . '/wp-content/themes/' . $name;
@@ -62,7 +60,7 @@ class Theme
     }
 
     /**
-     * Generate theme
+     * Generate theme.
      */
     public function generate()
     {
@@ -85,11 +83,10 @@ class Theme
     {
         $files = [
             $this->path . '/style.css',
-            $this->path . '/package.json'
+            $this->path . '/package.json',
         ];
 
-
-        /**
+        /*
          * Replace Author & Theme Name in style.css File
          */
         foreach ($files as $file) {
@@ -101,35 +98,34 @@ class Theme
                     file_get_contents($file)
                 )
             );
-
         }
 
         return $this;
     }
 
     /**
-     * Generate basic Timber theme
+     * Generate basic Timber theme.
      *
      * @return $this
      */
     protected function scaffoldWPTheme()
     {
         $this->copyFiles($this->getThemeFilesDirectory());
+
         return $this;
     }
 
     /**
-     * Copy files to created theme recursively
+     * Copy files to created theme recursively.
      *
      * @param $directory
      * @return $this
      */
-    protected function copyFiles( $directory )
+    protected function copyFiles($directory)
     {
         $files = glob($directory . '/*');
 
         foreach ($files as $item) {
-
             if (is_dir($item)) {
                 $this->copyFiles($item);
                 continue;
@@ -143,7 +139,7 @@ class Theme
     }
 
     /**
-     * Theme boilerplate directory
+     * Theme boilerplate directory.
      *
      * @return string
      */
@@ -153,18 +149,19 @@ class Theme
     }
 
     /**
-     * Install timber
+     * Install timber.
      *
      * @return Theme
      */
     protected function installTimber()
     {
-        ( new TimberInstaller($this->path, $this->output) )->install();
+        (new TimberInstaller($this->path, $this->output))->install();
+
         return $this;
     }
 
     /**
-     * Create theme directory
+     * Create theme directory.
      */
     protected function createDirectory()
     {
@@ -190,7 +187,7 @@ class Theme
             $process->setTty(true);
         }
 
-        $process->run(function ( $type, $line ) {
+        $process->run(function ($type, $line) {
             $this->output->writeln($line);
         });
 
@@ -209,7 +206,7 @@ class Theme
      * @param InputInterface $input
      * @return Theme
      */
-    public function setInput( $input )
+    public function setInput($input)
     {
         $this->input = $input;
 
@@ -228,9 +225,10 @@ class Theme
      * @param OutputInterface $output
      * @return Theme
      */
-    public function setOutput( $output )
+    public function setOutput($output)
     {
         $this->output = $output;
+
         return $this;
     }
 }
